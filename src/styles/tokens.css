@@ -1,0 +1,42 @@
+/* Design tokens. Spec: DESIGN.md. Dark only. The accent lives in --color-accent below; every other accent shade derives from it. */
+@font-face { font-family: "SUIT Variable"; font-weight: 100 900; font-style: normal; font-display: swap; src: url("../assets/fonts/SUIT-Variable.woff2") format("woff2-variations"), url("../assets/fonts/SUIT-Variable.woff2") format("woff2"); }
+:root {
+  color-scheme: dark;
+  --color-accent: oklch(0.690 0.158 27.4); /* #ed6f63 coral — the one place to change the accent */
+  --color-accent-foreground: oklch(0.284 0.008 59.3); /* dark ink: the accent is light, so on-accent text goes dark (4.7:1 on the coral) */
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 82%, white);
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 24%, var(--color-surface));
+  --color-accent-text: color-mix(in srgb, var(--color-accent) 45%, white);
+  --color-bg: oklch(0.284 0.008 59.3); /* #2D2926 */
+  --color-surface: oklch(0.226 0.002 106.551);
+  --color-surface-subtle: oklch(0.256 0.002 106.529);
+  --color-text: oklch(0.955 0.004 91.447);
+  --color-text-muted: oklch(0.82 0.008 106.607);
+  --color-text-faint: oklch(0.77 0.014 106.821);
+  --color-border: oklch(0.296 0.004 106.614);
+  --color-border-strong: oklch(0.359 0.007 106.735);
+  --color-hover: oklch(0.268 0.002 106.522);
+  --color-warning: oklch(0.731 0.13 73.34);
+  --color-warning-soft: color-mix(in srgb, var(--color-warning) 16%, var(--color-surface));
+  --color-warning-text: color-mix(in srgb, var(--color-warning) 80%, white);
+  --color-danger: oklch(0.55 0.2 10); /* deep crimson: darker + toward magenta so it stays distinct from the coral accent (hue 27) */
+  --color-danger-soft: color-mix(in srgb, var(--color-danger) 18%, var(--color-surface));
+  --color-danger-text: color-mix(in srgb, var(--color-danger) 70%, white);
+  --color-success: oklch(0.681 0.086 157.749);
+  --shadow-border: 0 0 0 1px oklch(1 0 0 / 8%);
+  --shadow-border-hover: 0 0 0 1px oklch(1 0 0 / 13%);
+  --shadow-overlay: 0 12px 32px oklch(0 0 0 / 45%);
+  --radius-control: 4px;
+  --radius-card: 5px;
+  --radius-overlay: 6px;
+  --font-sans: "SUIT Variable", "SUIT", system-ui, sans-serif;
+  --font-sheet: "Nanum Gothic Coding", ui-monospace, monospace;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --ctl-h: 32px;
+  --wheel: 264px;
+  --gutter: 32px;
+}
+
+@media (max-width: 719px) {
+  :root { --ctl-h: 44px; --wheel: 300px; --gutter: 16px; }
+}

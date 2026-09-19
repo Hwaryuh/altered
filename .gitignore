@@ -1,0 +1,9 @@
+.refs/
+.claude/
+.impeccable/
+.designs/
+node_modules
+dist
+.DS_Store
+CLAUDE.md
+AGENTS.md
