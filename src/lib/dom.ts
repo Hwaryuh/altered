@@ -28,6 +28,6 @@ export function useHashRoute(): string {
       window.addEventListener('hashchange', onChange);
       return () => window.removeEventListener('hashchange', onChange);
     },
-    () => window.location.hash.replace(/^#/, '') || '/',
+    () => window.location.hash.replace(/^#/, '').split('?')[0] || '/',
   );
 }

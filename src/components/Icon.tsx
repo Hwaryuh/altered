@@ -17,6 +17,9 @@ const PATHS = {
   chevLeft: <path d="M15 6l-6 6 6 6" />,
   chevRight: <path d="M9 6l6 6-6 6" />,
   pin: <g transform="rotate(45 12 12)"><path d="M9 4h6l-1 5.5 3 3V15H7v-2.5l3-3z" /><path d="M12 15v5" /></g>,
+  link: <><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1" /><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1" /></>,
+  download: <><path d="M12 4v11" /><path d="M7 10l5 5 5-5" /><path d="M5 20h14" /></>,
+  upload: <><path d="M12 15V4" /><path d="M7 9l5-5 5 5" /><path d="M5 20h14" /></>,
   warnCircle: <><circle cx="12" cy="12" r="9" /><path d="M12 7v6" /><path d="M12 16.5h.01" /></>,
 } as const;
 

@@ -1,6 +1,7 @@
 import { TUNINGS, noteName, type Frets } from '../../engine/fretboard';
 import { mod12 } from '../../engine/transpose';
-import { Chevron, Icon } from '../../components/Icon';
+import { useRef } from 'react';
+import { Chevron, Icon, type IconName } from '../../components/Icon';
 import { useI18n } from '../../i18n/I18nProvider';
 import { MOBILE_QUERY, useMediaQuery } from '../../lib/dom';
 import type { Voicing } from '../../engine/voicing';
@@ -176,6 +177,26 @@ function ChordCard({ c, f }: { c: Card; f: F }) {
   );
 }
 
+function Share({ f, mobile }: { f: F; mobile: boolean }) {
+  const { t: msg } = useI18n();
+  const file = useRef<HTMLInputElement>(null);
+  // icon-only on mobile: the label stays for screen readers and the tooltip
+  const btn = (icon: IconName, label: string, onClick: () => void) => (
+    <button type="button" className="btn btn-ghost" title={mobile ? label : undefined} onClick={onClick}>
+      <Icon name={icon} /><span className={mobile ? 'sr-only' : undefined}>{label}</span>
+    </button>
+  );
+  return (
+    <div className="cf-share">
+      {btn(f.s.copy === 'ok' ? 'check' : 'link', msg(f.s.copy === 'ok' ? 'chordform.share.copied' : 'chordform.share.link'), f.actions.shareLink)}
+      {btn('download', msg('chordform.file.save'), f.actions.saveFile)}
+      {btn('upload', msg('chordform.file.open'), () => file.current?.click())}
+      <input ref={file} type="file" accept=".json,application/json" hidden
+        onChange={(e) => { const picked = e.target.files?.[0]; if (picked) f.actions.openFile(picked); e.target.value = ''; }} />
+    </div>
+  );
+}
+
 function Path({ f, mobile }: { f: F; mobile: boolean }) {
   const { t: msg } = useI18n();
   return (
@@ -183,6 +204,7 @@ function Path({ f, mobile }: { f: F; mobile: boolean }) {
       <div className="cf-head">
         <h2 id="cf-path-title" className="heading pane-title">{msg('chordform.path.title')}</h2>
         <span className="pane-meta" />
+        <Share f={f} mobile={mobile} />
       </div>
       <ol className="cf-strip">
         {f.cards.map((c) => (

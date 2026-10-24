@@ -1,4 +1,4 @@
-import { useMemo, useState, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import { TUNINGS, noteName } from '../../engine/fretboard';
 import { parseKeyId, transpose, type Policy } from '../../engine/transpose';
 import { capoRanks, parseChord, voicePath, type Voicing } from '../../engine/voicing';
@@ -35,8 +35,8 @@ interface State extends Saved {
   sel: number;
   copy: '' | 'ok' | 'fail';
   notice: string;
-  /** text before the last import, for one-step undo */
-  before: string | null;
+  /** settings before the last import, for one-step undo */
+  before: Saved | null;
 }
 
 const SAVE_KEY = 'altered.chordform.v1';
@@ -48,6 +48,49 @@ const isSaved = (v: unknown): v is Saved =>
   && v.lo <= v.hi && typeof v.free === 'boolean' && typeof v.tuning === 'string' && Array.isArray(v.pins) && v.pins.every(isPin)
   // string range came later: older saves without it get the defaults
   && (v.sLo === undefined || (isInt(v.sLo, 1, 6) && isInt(v.sHi, 1, 6) && v.sLo <= v.sHi && typeof v.sFree === 'boolean'));
+
+const KEYS = Object.keys(DEFAULTS) as Array<keyof Saved>;
+/** only the saved fields; ones an older save lacks keep their defaults */
+const pick = (v: Saved): Saved => Object.assign({ ...DEFAULTS }, ...KEYS.filter((k) => v[k] !== undefined).map((k) => ({ [k]: v[k] })));
+const FILE_TAG = 'altered.chordform';
+
+const parseSaved = (json: string): Saved | null => {
+  try {
+    const v: unknown = JSON.parse(json);
+    return isSaved(v) ? pick(v) : null;
+  } catch {
+    return null;
+  }
+};
+
+// share link: '#/forms?s=' + base64url(deflate-raw(JSON array)); keys dropped, and a pin keeps only its code (the symbol is the chord at that slot)
+const LINK_V = 1;
+const b64url = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const unb64url = (code: string) => Uint8Array.from(atob(code.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
+const pipe = async (bytes: Uint8Array, stream: CompressionStream | DecompressionStream) =>
+  new Uint8Array(await new Response(new Blob([bytes as BlobPart]).stream().pipeThrough(stream)).arrayBuffer());
+
+async function encodeLink(v: Saved): Promise<string> {
+  const pins = v.pins.map((p) => (p ? p.code : 0));
+  while (pins.length && !pins[pins.length - 1]) pins.pop();
+  const packed = [LINK_V, v.text, v.notes, v.lo, v.hi, +v.free, v.sLo, v.sHi, +v.sFree, v.tuning, pins];
+  return b64url(await pipe(new TextEncoder().encode(JSON.stringify(packed)), new CompressionStream('deflate-raw')));
+}
+
+async function decodeLink(code: string): Promise<Saved | null> {
+  try {
+    const a: unknown = JSON.parse(new TextDecoder().decode(await pipe(unb64url(code), new DecompressionStream('deflate-raw'))));
+    if (!Array.isArray(a) || a[0] !== LINK_V || typeof a[1] !== 'string' || !Array.isArray(a[10])) return null;
+    const symbols = splitProgression(a[1]);
+    const v = {
+      text: a[1], notes: a[2], lo: a[3], hi: a[4], free: a[5] === 1, sLo: a[6], sHi: a[7], sFree: a[8] === 1, tuning: a[9],
+      pins: a[10].map((c: unknown, i: number) => (typeof c === 'string' && symbols[i] ? { symbol: symbols[i], code: c } : null)),
+    };
+    return isSaved(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
 
 /** "F - G | E7, Am" → ['F', 'G', 'E7', 'Am']; a lone dash is a separator, not a chord */
 export const splitProgression = (text: string) => text.split(/[\s|,]+/).filter((t) => t && !/^[-–—]+$/.test(t));
@@ -71,11 +114,26 @@ const shapeMeta = (v: Voicing) => (v.barre ? translate('common.barre') : '');
 
 export function useChordForm() {
   const { t } = useI18n();
-  const [s, setS] = useState<State>(() => {
-    const saved = loadSaved(SAVE_KEY, isSaved);
-    return { ...DEFAULTS, ...saved, sel: 0, copy: '', notice: '', before: null };
-  });
-  useSaved(SAVE_KEY, { text: s.text, notes: s.notes, lo: s.lo, hi: s.hi, free: s.free, sLo: s.sLo, sHi: s.sHi, sFree: s.sFree, tuning: s.tuning, pins: s.pins });
+  const [s, setS] = useState<State>(() => ({ ...DEFAULTS, ...loadSaved(SAVE_KEY, isSaved), sel: 0, copy: '', notice: '', before: null }));
+  // a shared link opens over the local progression (undo brings that back); the address drops it at once, so a reload keeps later edits
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('s');
+    if (!code) return;
+    window.history.replaceState(null, '', '#/forms');
+    decodeLink(code).then((v) => setS((prev) => (v
+      ? { ...prev, ...v, sel: 0, before: pick(prev), notice: translate('chordform.notice.shared') }
+      : { ...prev, notice: translate('chordform.notice.badLink') })));
+  }, []);
+  const saved = pick(s);
+  const savedJson = JSON.stringify(saved);
+  useSaved(SAVE_KEY, saved);
+  // built ahead of the click: compression is async, and Safari only lets a click write the clipboard synchronously
+  const [link, setLink] = useState('');
+  useEffect(() => {
+    let live = true;
+    encodeLink(JSON.parse(savedJson) as Saved).then((code) => live && setLink(`${window.location.origin}${window.location.pathname}#/forms?s=${code}`));
+    return () => { live = false; };
+  }, [savedJson]);
   const patch = (p: Partial<State>) => setS((prev) => ({ ...prev, ...p }));
 
   const tuning = (TUNINGS.find((t) => t.id === s.tuning) ?? TUNINGS[0]).midi;
@@ -137,6 +195,25 @@ export function useChordForm() {
   const copyTo = useClipboard((copy) => patch({ copy }));
   const copy = () => copyTo(copyText);
 
+  // ponytail: clipboard only; navigator.share (mobile share sheet) if pasting gets annoying
+  const shareLink = () => link && copyTo(link, () => window.prompt(t('chordform.share.manual'), link));
+  const saveFile = () => {
+    const name = `${symbols.slice(0, 8).join('-').replace(/[\\/:*?"<>|\s]+/g, '_') || 'progression'}.altered.json`;
+    const url = URL.createObjectURL(new Blob([JSON.stringify({ app: FILE_TAG, ...saved }, null, 2)], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  const openFile = (file: File) => {
+    file.text().then((json) => {
+      const v = parseSaved(json);
+      if (!v) return patch({ notice: t('chordform.notice.badFile', { name: file.name }) });
+      patch({ ...v, before: saved, sel: 0, notice: t('chordform.notice.file', { name: file.name }) });
+    }, () => patch({ notice: t('chordform.notice.badFile', { name: file.name }) }));
+  };
+
   return {
     s, sel, cards, cur, options, tuning, copyText, capo,
     stringNames: tuning.map((m) => noteName(m)),
@@ -173,15 +250,15 @@ export function useChordForm() {
       importTransposer: () => {
         const chords = transposerChords();
         if (!chords || !chords.length) return patch({ notice: t('chordform.notice.noTransposer') });
-        patch({ before: s.text, text: chords.join(' '), pins: [], sel: 0, notice: t('chordform.notice.imported', { count: chords.length }) });
+        patch({ before: saved, text: chords.join(' '), pins: [], sel: 0, notice: t('chordform.notice.imported', { count: chords.length }) });
       },
       // finger the progression as the capo shapes; the sound stays, so the notice says so
       applyCapo: (capo: number, shapes: string) => patch({
-        before: s.text, text: shapes, pins: [], sel: 0,
+        before: saved, text: shapes, pins: [], sel: 0,
         notice: t('chordform.notice.capo', { capo, shapes }),
       }),
-      undoImport: () => s.before !== null && patch({ text: s.before, before: null, pins: [], notice: t('chordform.notice.undone') }),
-      copy,
+      undoImport: () => s.before !== null && patch({ ...s.before, before: null, sel: 0, notice: t('chordform.notice.undone') }),
+      copy, shareLink, saveFile, openFile,
     },
   };
 }

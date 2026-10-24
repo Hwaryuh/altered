@@ -21,6 +21,7 @@
 .cf-work { flex: none; box-sizing: border-box; padding: 24px var(--gutter) 40px; display: flex; flex-direction: column; gap: 24px; }
 .cf-head { display: flex; align-items: center; gap: 12px; min-height: 30px; }
 .cf-head .pane-meta { flex-grow: 1; }
+.cf-share { display: flex; gap: 2px; margin: -4px -8px -4px 0; }
 .cf-accent { color: var(--color-accent-text); }
 .cf-path { padding: 14px 16px 16px; gap: 12px; }
 .cf-fail { margin: 0; font-size: 11.5px; color: var(--color-danger-text); }
@@ -130,6 +131,8 @@
   .cf-work { padding: 20px var(--gutter) 24px; gap: 20px; }
   .cf-path { padding: 14px 6px 8px; }
   .cf-path .cf-head { padding: 0 10px; }
+  .cf-share { margin: -8px -10px -8px 0; }
+  .cf-share .btn { width: 44px; padding: 0; }
   .cf-strip { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
   .cf-cell { grid-template-columns: minmax(0, 1fr); }
   .cf-conn { flex-direction: row; justify-content: flex-start; height: 32px; padding-left: 16px; }
