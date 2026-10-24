@@ -64,6 +64,8 @@ function transposerChords(): string[] | null {
   }
 }
 
+// signed fret count ("+2", "−1", "0"); the spoken phrase goes to aria-label
+const moveNum = (d: number) => (d > 0 ? `+${d}` : d < 0 ? `\u2212${-d}` : '0');
 const moveText = (d: number) => (d === 0 ? translate('chordform.move.none') : translate(d > 0 ? 'chordform.move.up' : 'chordform.move.down', { n: Math.abs(d) }));
 const shapeMeta = (v: Voicing) => (v.barre ? translate('common.barre') : '');
 
@@ -109,7 +111,8 @@ export function useChordForm() {
       unknown: !parsed, none: !!parsed && !v,
       pinned: s.pins[i]?.symbol === st.symbol,
       meta: v ? shapeMeta(v) : '',
-      move: v && next ? moveText(next.pos - v.pos) : '',
+      move: v && next ? moveNum(next.pos - v.pos) : '',
+      moveLabel: v && next ? moveText(next.pos - v.pos) : '',
       last: i === steps.length - 1,
       on: i === sel,
     };
@@ -121,7 +124,7 @@ export function useChordForm() {
     const d = from ? v.pos - from.pos : 0;
     return {
       key: v.code, code: v.code, meta: shapeMeta(v),
-      move: from ? moveText(d) : '', far: Math.abs(d) >= 4,
+      move: from ? moveNum(d) : '', moveLabel: from ? moveText(d) : '', far: Math.abs(d) >= 4,
       on: !!cur?.choice && cur.choice.code === v.code,
     };
   });

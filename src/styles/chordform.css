@@ -30,7 +30,7 @@
 .cf-strip { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 16px; }
 .cf-cell { display: grid; grid-template-columns: minmax(0, 1fr) 56px; min-width: 0; }
 .cf-conn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--color-text-muted); text-align: center; }
-.cf-conn b { font-size: 10.5px; font-weight: 600; color: var(--color-text); }
+.cf-conn b { font-size: 15px; font-weight: 700; line-height: 1; color: var(--color-text); }
 
 .cf-card { appearance: none; border: 0; margin: 0; min-width: 0; padding: 12px 12px 10px; display: flex; flex-direction: column; gap: 6px; text-align: left; font: inherit; color: inherit; cursor: pointer; background: var(--color-surface); border-radius: var(--radius-card); box-shadow: var(--shadow-border); transition: box-shadow 150ms var(--ease), background-color 150ms var(--ease); }
 .cf-card:hover { box-shadow: var(--shadow-border-hover); }
@@ -96,7 +96,7 @@
 .cf-pin { color: var(--color-accent); fill: currentColor; }
 .cf-alt-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .cf-code { font-size: 13px; }
-.cf-move { font-size: 11px; font-weight: 600; white-space: nowrap; }
+.cf-move { min-width: 3ch; font-size: 15px; font-weight: 700; line-height: 1; text-align: right; white-space: nowrap; }
 .cf-move.is-far { color: var(--color-warning-text); }
 
 @media (max-width: 1180px) {
@@ -133,7 +133,7 @@
   .cf-strip { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
   .cf-cell { grid-template-columns: minmax(0, 1fr); }
   .cf-conn { flex-direction: row; justify-content: flex-start; height: 32px; padding-left: 16px; }
-  .cf-conn b { font-size: 13px; }
+  .cf-conn b { font-size: 17px; }
   .cf-conn[aria-hidden="true"] { height: 8px; }
   .cf-card { flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px 10px 10px 12px; }
   .cf-card-head { flex: 1 1 0; }
@@ -145,7 +145,7 @@
   .cf-alts { padding: 14px 6px 8px; }
   .cf-alt { min-height: 52px; }
   .cf-code { font-size: 14px; }
-  .cf-move { font-size: 13px; }
+  .cf-move { font-size: 17px; }
   .cf-alt-list { max-height: none; }
 
   .cf-bar { flex-direction: row; align-items: center; gap: 8px; }

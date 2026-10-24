@@ -189,7 +189,7 @@ function Path({ f, mobile }: { f: F; mobile: boolean }) {
           <li key={c.key} className="cf-cell">
             <ChordCard c={c} f={f} />
             <span className="cf-conn" aria-hidden={!c.move}>
-              {c.move && <><Icon name={mobile ? 'chevDown' : 'arrowRight'} size={16} /><b>{c.move}</b></>}
+              {c.move && <><Icon name={mobile ? 'chevDown' : 'arrowRight'} size={16} /><b className="num" title={c.moveLabel}><span aria-hidden="true">{c.move}</span><span className="sr-only">{c.moveLabel}</span></b></>}
             </span>
           </li>
         ))}
@@ -253,7 +253,7 @@ function Detail({ f }: { f: F }) {
                 <span className="code-font cf-code">{o.code}</span>
                 <span className="cf-meta num">{o.meta}</span>
               </span>
-              <span className={'cf-move num' + (o.far ? ' is-far' : '')}>{o.move}</span>
+              <span className={'cf-move num' + (o.far ? ' is-far' : '')} title={o.moveLabel}><span aria-hidden="true">{o.move}</span><span className="sr-only">{o.moveLabel}</span></span>
             </label>
           ))}
         </div>
